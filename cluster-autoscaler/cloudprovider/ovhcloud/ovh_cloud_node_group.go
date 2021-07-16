@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strings"
+	"time"
 
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -245,10 +247,7 @@ func (ng *NodeGroup) TemplateNodeInfo() (*schedulerframework.NodeInfo, error) {
 
 	// Setup node info template
 	nodeInfo := schedulerframework.NewNodeInfo(cloudprovider.BuildKubeProxy(ng.Id()))
-	err := nodeInfo.SetNode(node)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set up node info: %w", err)
-	}
+	nodeInfo.SetNode(node)
 
 	return nodeInfo, nil
 }
@@ -315,7 +314,32 @@ func (ng *NodeGroup) Autoprovisioned() bool {
 // GetOptions returns NodeGroupAutoscalingOptions that should be used for this particular
 // NodeGroup. Returning a nil will result in using default options.
 func (ng *NodeGroup) GetOptions(defaults config.NodeGroupAutoscalingOptions) (*config.NodeGroupAutoscalingOptions, error) {
-	return nil, cloudprovider.ErrNotImplemented
+	// If node group autoscaling options nil, return defaults
+	if ng.Autoscaling == nil {
+		return nil, nil
+	}
+
+	// Forge autoscaling configuration from node pool
+	cfg := &config.NodeGroupAutoscalingOptions{
+		ScaleDownUnneededTime: time.Duration(ng.Autoscaling.ScaleDownUnneededTimeSeconds) * time.Second,
+		ScaleDownUnreadyTime:  time.Duration(ng.Autoscaling.ScaleDownUnreadyTimeSeconds) * time.Second,
+	}
+
+	// Switch utilization threshold from defaults given flavor type
+	if ng.isGpu() {
+		cfg.ScaleDownUtilizationThreshold = defaults.ScaleDownUtilizationThreshold
+		cfg.ScaleDownGpuUtilizationThreshold = float64(ng.Autoscaling.ScaleDownUtilizationThreshold) // Use this one
+	} else {
+		cfg.ScaleDownUtilizationThreshold = float64(ng.Autoscaling.ScaleDownUtilizationThreshold) // Use this one
+		cfg.ScaleDownGpuUtilizationThreshold = defaults.ScaleDownGpuUtilizationThreshold
+	}
+
+	return cfg, nil
+}
+
+// isGpu checks if a node group is using GPU machines
+func (ng *NodeGroup) isGpu() bool {
+	return strings.HasPrefix(ng.Flavor, GPUMachineCategory)
 }
 
 // extractNodeIds find in an array of node resource their cloud instances IDs
