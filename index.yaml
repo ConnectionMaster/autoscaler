@@ -171,4 +171,21 @@ entries:
     urls:
     - https://github.com/ConnectionMaster/autoscaler/releases/download/cluster-autoscaler-chart-9.43.2/cluster-autoscaler-9.43.2.tgz
     version: 9.43.2
-generated: "2025-08-15T01:58:34.0141715Z"
+  vertical-pod-autoscaler:
+  - apiVersion: v2
+    appVersion: 1.5.0
+    created: "2025-09-29T15:53:43.130823711Z"
+    description: Automatically adjust resources for your workloads
+    digest: ba3d010a9f003ad68d6a1bf072ca078fd2d7782c9f82588f5ae868328dbeaf41
+    icon: https://github.com/kubernetes/kubernetes/raw/master/logo/logo.png
+    maintainers:
+    - email: kubernetes-sig-autoscaling@googlegroups.com
+      name: adrianmoisey
+    - email: kubernetes-sig-autoscaling@googlegroups.com
+      name: omerap12
+    name: vertical-pod-autoscaler
+    type: application
+    urls:
+    - https://github.com/ConnectionMaster/autoscaler/releases/download/cluster-autoscaler-chart-0.1.0/vertical-pod-autoscaler-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-09-29T15:53:43.130849599Z"
